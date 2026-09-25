@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адмін Панель - Alchemist Game</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .admin-form {
+            background: #2b2b36;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 20px 0;
+        }
+
+        .admin-form label {
+            display: block;
+            margin-top: 10px;
+            color: #aaa;
+        }
+
+        .admin-form input,
+        .admin-form select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            background: #111;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 4px;
+        }
+
+        .admin-btn {
+            margin-top: 15px;
+            background: #a335ee;
+            color: white;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .admin-btn:hover {
+            background: #b547ff;
+        }
+
+        .nav-link {
+            color: #00ffff;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+
+<body style="overflow: auto;">
+    <a href="index.html" class="nav-link">⬅ Повернутися до гри</a>
+    <h1>Панель Адміністратора</h1>
+
+    <div class="admin-form">
+        <h3>Додати новий предмет у базу</h3>
+        <form id="add-item-form">
+            <label>Назва предмета:</label>
+            <input type="text" id="itemName" required placeholder="Наприклад: Око павука">
+
+            <label>Тип предмета:</label>
+            <select id="itemType">
+                <option value="Ingredient">Інгредієнт (Трава/Монстри)</option>
+                <option value="Potion">Зілля</option>
+                <option value="Misc">Різне (Колби тощо)</option>
+            </select>
+
+            <label>Рідкісність (з таблиці Rarities):</label>
+            <select id="itemRarity">
+                <option value="1">Звичайний (Білий)</option>
+                <option value="2">Рідкісний (Синій)</option>
+                <option value="3">Епічний (Фіолетовий)</option>
+            </select>
+
+            <label>Базова ціна (Золото):</label>
+            <input type="number" id="itemPrice" required min="0" value="10">
+
+            <label>Посилання на іконку (з Icons8):</label>
+            <input type="text" id="itemIcon" required placeholder="https://img.icons8.com/color/96/spider.png">
+
+            <button type="submit" class="admin-btn">Зберегти предмет</button>
+        </form>
+        <p id="admin-message" style="margin-top: 15px; font-weight: bold;"></p>
+    </div>
+
+    <script src="scripts/admin.js"></script>
+
+    <!-- Форма створення Рецепта -->
+    <div class="admin-form">
+        <h3>Додати новий рецепт</h3>
+        <form id="add-recipe-form">
+            <label>Що отримаємо (Зілля):</label>
+            <select id="recipeResult" class="item-dropdown" required></select>
+
+            <label>Вимога до досвіду гравця (XP):</label>
+            <input type="number" id="recipeXp" value="0" min="0">
+
+            <label>Інгредієнт 1:</label>
+            <div style="display: flex; gap: 10px;">
+                <select id="recipeIng1" class="item-dropdown" required></select>
+                <input type="number" id="recipeQty1" value="1" min="1" placeholder="Кількість">
+            </div>
+
+            <label>Інгредієнт 2 (необов'язково):</label>
+            <div style="display: flex; gap: 10px;">
+                <select id="recipeIng2" class="item-dropdown">
+                    <option value="0">Немає</option>
+                </select>
+                <input type="number" id="recipeQty2" value="0" min="0" placeholder="Кількість">
+            </div>
+
+            <button type="submit" class="admin-btn">Зберегти рецепт</button>
+        </form>
+        <p id="recipe-message" style="margin-top: 15px; font-weight: bold;"></p>
+    </div>
+
+    <!-- Форма створення Квесту -->
+    <div class="admin-form">
+        <h3>Додати новий квест</h3>
+        <form id="add-quest-form">
+            <label>Назва квесту:</label>
+            <input type="text" id="questTitle" required placeholder="Наприклад: Отрута для щурів">
+
+            <label>Опис:</label>
+            <input type="text" id="questDesc" required placeholder="Принеси мені зілля...">
+
+            <div style="display: flex; gap: 10px;">
+                <div style="width: 50%;">
+                    <label>Нагорода (Золото):</label>
+                    <input type="number" id="questGold" value="100" min="0">
+                </div>
+                <div style="width: 50%;">
+                    <label>Нагорода (XP):</label>
+                    <input type="number" id="questXp" value="50" min="0">
+                </div>
+            </div>
+
+            <label>Що потрібно принести:</label>
+            <div style="display: flex; gap: 10px;">
+                <select id="questReqItem" class="item-dropdown" required></select>
+                <input type="number" id="questReqQty" value="1" min="1" placeholder="Кількість">
+            </div>
+
+            <button type="submit" class="admin-btn" style="background: #0070DD;">Створити квест</button>
+        </form>
+        <p id="quest-message" style="margin-top: 15px; font-weight: bold;"></p>
+    </div>
+</body>
+
+</html>
