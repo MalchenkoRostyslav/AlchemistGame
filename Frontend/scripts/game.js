@@ -2,19 +2,52 @@ let currentPlayerId = null;
 const API_BASE = 'http://localhost:5012/api';
 
 // --- МЕНЮ ТА ПРОФІЛІ ---
-async function createNewGame() {
-    const nickname = prompt("Введіть ім'я вашого алхіміка:");
-    if (!nickname) return;
+function createNewGame() {
+    document.getElementById('profiles-container').classList.add('hidden');
+    document.getElementById('create-form').classList.remove('hidden');
+    document.getElementById('create-error').innerText = '';
+
+    const input = document.getElementById('nickname-input');
+    input.value = '';
+    input.focus();
+    input.onkeydown = (e) => { if (e.key === 'Enter') submitNewGame(); };
+}
+
+async function submitNewGame() {
+    const errorEl = document.getElementById('create-error');
+    const nickname = document.getElementById('nickname-input').value.trim();
+
+    if (!nickname) { errorEl.innerText = "Введіть ім'я!"; return; }
+    errorEl.innerText = '';
+
     try {
-        const response = await fetch(`${API_BASE}/player/new?nickname=${nickname}`, { method: 'POST' });
+        const response = await fetch(`${API_BASE}/player/new?nickname=${encodeURIComponent(nickname)}`, { method: 'POST' });
         if (response.ok) {
             const newPlayer = await response.json();
+            document.getElementById('create-form').classList.add('hidden');
             startGame(newPlayer.id);
+        } else {
+            errorEl.innerText = await readError(response);
         }
-    } catch (e) { alert("Помилка з'єднання!"); }
+    } catch (e) {
+        errorEl.innerText = "Немає зв'язку з сервером. Перевірте, що API запущено (http://localhost:5012).";
+        console.error(e);
+    }
+}
+
+// Дістає текст помилки з відповіді API ({ "message": "..." } або простий текст)
+async function readError(response) {
+    const text = await response.text();
+    try {
+        const json = JSON.parse(text);
+        if (json.message) return json.message;
+        if (json.title) return json.title;
+    } catch { /* не JSON */ }
+    return text || `Помилка ${response.status}`;
 }
 
 async function showProfilesList(action) {
+    document.getElementById('create-form').classList.add('hidden');
     const container = document.getElementById('profiles-container');
     const list = document.getElementById('profiles-list');
     const title = document.getElementById('profiles-title');

@@ -1,13 +1,17 @@
 using Microsoft.EntityFrameworkCore;
-using AlchemistApi.Models; // Переконайся, що тут правильна назва твого проєкту
+using AlchemistApi.Models;
+using AlchemistApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Підключаємо базу даних, використовуючи рядок з appsettings.json
+// 1. База даних
 builder.Services.AddDbContext<AlchemistGameContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Налаштовуємо CORS (дозволяємо будь-якому фронтенду звертатися до нашого API)
+// 2. Ігрові сервіси (правила гри: енергія, XP, рівні, розблокування рецептів)
+builder.Services.AddScoped<PlayerService>();
+
+// 3. CORS (для розробки дозволяємо будь-який фронтенд)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -32,7 +36,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// 3. Вмикаємо CORS (має бути перед Authorization та MapControllers)
+// CORS має бути перед Authorization та MapControllers
 app.UseCors("AllowFrontend");
 
 app.UseAuthorization();

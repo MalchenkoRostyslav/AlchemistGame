@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using AlchemistApi.Models; // Переконайся, що тут назва твого проєкту
+using AlchemistApi.Models;
+using AlchemistApi.Services;
 
 namespace AlchemistApi.Controllers
 {
@@ -15,34 +16,43 @@ namespace AlchemistApi.Controllers
             _context = context;
         }
 
-        // Запит типу GET /api/inventory/1
-        [HttpGet("{playerId}")]
+        // GET /api/inventory/1  (порожня сумка = порожній масив, а не 404)
+        [HttpGet("{playerId:int}")]
         public async Task<IActionResult> GetPlayerInventory(int playerId)
         {
-            // Витягуємо інвентар з бази разом із даними про предмети та їх рідкісність
-            var inventory = await _context.PlayerInventories
-                .Include(pi => pi.Item)
-                    .ThenInclude(i => i.Rarity)
+            if (!await _context.Players.AnyAsync(p => p.Id == playerId))
+                return NotFound(new { message = "Гравця не знайдено" });
+
+            var raw = await _context.PlayerInventories
                 .Where(pi => pi.PlayerId == playerId)
+                .OrderBy(pi => pi.Item.ItemType).ThenBy(pi => pi.Item.Name)
                 .Select(pi => new
                 {
                     ItemId = pi.ItemId,
-                    Name = pi.Item!.Name, // Додано !
+                    Name = pi.Item.Name,
                     Quantity = pi.Quantity,
                     Type = pi.Item.ItemType,
-                    Rarity = pi.Item.Rarity!.Name, // Додано !
-                    Color = pi.Item.Rarity!.ColorHex, // Додано !
+                    Rarity = pi.Item.Rarity!.Name,
+                    Color = pi.Item.Rarity!.ColorHex,
                     Icon = pi.Item.IconPath,
                     Price = pi.Item.BasePrice
                 })
                 .ToListAsync();
 
-            if (!inventory.Any())
+            var inventory = raw.Select(x => new
             {
-                return NotFound("Інвентар порожній або гравця не існує.");
-            }
+                x.ItemId,
+                x.Name,
+                x.Quantity,
+                x.Type,
+                x.Rarity,
+                x.Color,
+                x.Icon,
+                x.Price,
+                Sellable = GameRules.IsSellable(x.Type)
+            });
 
-            return Ok(inventory); // Повертаємо дані у форматі JSON
+            return Ok(inventory);
         }
     }
 }

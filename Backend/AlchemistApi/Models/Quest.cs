@@ -15,6 +15,10 @@ public partial class Quest
 
     public int RewardXp { get; set; }
 
+    public int RequiredLevel { get; set; } = 1;
+
+    public bool IsRepeatable { get; set; }
+
     public virtual ICollection<PlayerQuest> PlayerQuests { get; set; } = new List<PlayerQuest>();
 
     public virtual ICollection<QuestRequirement> QuestRequirements { get; set; } = new List<QuestRequirement>();

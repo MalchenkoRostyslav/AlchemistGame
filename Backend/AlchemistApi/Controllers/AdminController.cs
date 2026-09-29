@@ -59,6 +59,7 @@ namespace AlchemistApi.Controllers
             public int Ingredient1Qty { get; set; }
             public int Ingredient2Id { get; set; }
             public int Ingredient2Qty { get; set; }
+            public int RequiredLevel { get; set; } = 1;
         }
 
         public class CreateQuestDto
@@ -85,22 +86,35 @@ namespace AlchemistApi.Controllers
         [HttpPost("add-recipe")]
         public async Task<IActionResult> AddRecipe([FromBody] CreateRecipeDto dto)
         {
-            var recipe = new Recipe { ResultItemId = dto.ResultItemId, RequiredXp = dto.RequiredXp };
+            var recipe = new Recipe
+            {
+                ResultItemId = dto.ResultItemId,
+                RequiredXp = dto.RequiredXp,
+                RequiredLevel = Math.Max(1, dto.RequiredLevel)
+            };
             _context.Recipes.Add(recipe);
             await _context.SaveChangesAsync(); // Зберігаємо, щоб отримати ID рецепта
 
-            // Додаємо перший інгредієнт
             if (dto.Ingredient1Id > 0 && dto.Ingredient1Qty > 0)
             {
                 _context.RecipeIngredients.Add(new RecipeIngredient
                 { RecipeId = recipe.Id, IngredientItemId = dto.Ingredient1Id, QuantityNeeded = dto.Ingredient1Qty });
             }
 
-            // Додаємо другий інгредієнт (якщо вказано)
-            if (dto.Ingredient2Id > 0 && dto.Ingredient2Qty > 0)
+            if (dto.Ingredient2Id > 0 && dto.Ingredient2Qty > 0 && dto.Ingredient2Id != dto.Ingredient1Id)
             {
                 _context.RecipeIngredients.Add(new RecipeIngredient
                 { RecipeId = recipe.Id, IngredientItemId = dto.Ingredient2Id, QuantityNeeded = dto.Ingredient2Qty });
+            }
+
+            // Відкриваємо новий рецепт усім гравцям, які вже досягли потрібного рівня
+            var playerIds = await _context.Players
+                .Where(p => p.Level >= recipe.RequiredLevel)
+                .Select(p => p.Id)
+                .ToListAsync();
+            foreach (var pid in playerIds)
+            {
+                _context.PlayerRecipes.Add(new PlayerRecipe { PlayerId = pid, RecipeId = recipe.Id, UnlockedAt = DateTime.UtcNow });
             }
 
             await _context.SaveChangesAsync();

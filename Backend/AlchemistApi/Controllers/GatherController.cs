@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AlchemistApi.Models;
-using System;
+using AlchemistApi.Services;
 
 namespace AlchemistApi.Controllers
 {
@@ -10,62 +10,46 @@ namespace AlchemistApi.Controllers
     public class GatherController : ControllerBase
     {
         private readonly AlchemistGameContext _context;
+        private readonly PlayerService _players;
 
-        public GatherController(AlchemistGameContext context)
+        public GatherController(AlchemistGameContext context, PlayerService players)
         {
             _context = context;
+            _players = players;
         }
+
+        // Тимчасово id предметів усе ще прописані тут; дані-кероване збирання (локації + таблиці лута) додамо разом зі сторінкою котла.
+        private const int WaterItemId = 1;
+        private const int MandrakeItemId = 2;
 
         [HttpPost]
         public async Task<IActionResult> GoToForest(int playerId)
         {
-            // 1. Шукаємо гравця та перевіряємо енергію
             var player = await _context.Players.FindAsync(playerId);
-            if (player == null) return NotFound("Гравця не знайдено");
+            if (player == null) return NotFound(new { message = "Гравця не знайдено" });
 
-            if (player.Energy < 5)
-            {
-                return BadRequest("Недостатньо енергії для походу в ліс! (Потрібно 5 ⚡)");
-            }
+            if (!_players.TrySpendEnergy(player, GameRules.GatherEnergyCost))
+                return BadRequest(new { message = $"Недостатньо енергії для походу в ліс! (Потрібно {GameRules.GatherEnergyCost} ⚡)" });
 
-            // Віднімаємо енергію та оновлюємо таймер
-            player.Energy -= 5;
-            player.LastEnergyUpdate = DateTime.Now;
+            // 70% вода, 30% мандрагора; кількість 1-3
+            int dropItemId = Random.Shared.Next(100) < 30 ? MandrakeItemId : WaterItemId;
+            int amount = Random.Shared.Next(1, 4);
 
-            // 2. Генерація випадкового луту (70% шанс на Воду, 30% на Мандрагору)
-            var rnd = new Random();
-            int dropItemId = rnd.Next(1, 100) > 70 ? 2 : 1; // 1 - Вода, 2 - Мандрагора
-            int amount = rnd.Next(1, 4); // Випаде від 1 до 3 штук
-
-            // 3. Отримуємо інформацію про предмет для гарного повідомлення
             var item = await _context.Items.FindAsync(dropItemId);
-            if (item == null) return NotFound("Предмет не знайдено в базі даних");
+            if (item == null) return NotFound(new { message = "Предмет не знайдено в базі даних" });
 
-            // 4. Шукаємо цей предмет в інвентарі
-            var inventorySlot = await _context.PlayerInventories
+            var slot = await _context.PlayerInventories
                 .FirstOrDefaultAsync(pi => pi.PlayerId == playerId && pi.ItemId == dropItemId);
+            if (slot != null) slot.Quantity += amount;
+            else _context.PlayerInventories.Add(new PlayerInventory { PlayerId = playerId, ItemId = dropItemId, Quantity = amount });
 
-            if (inventorySlot != null)
-            {
-                inventorySlot.Quantity += amount;
-            }
-            else
-            {
-                _context.PlayerInventories.Add(new PlayerInventory
-                {
-                    PlayerId = playerId,
-                    ItemId = dropItemId,
-                    Quantity = amount
-                });
-            }
-
-            // 5. Зберігаємо всі зміни (енергію та інвентар) однією транзакцією
             await _context.SaveChangesAsync();
 
-            // Повертаємо інформацію про лут та залишок енергії
             return Ok(new
             {
                 message = $"Ви знайшли у лісі: {item.Name} (x{amount})",
+                item = new { itemId = item.Id, name = item.Name, icon = item.IconPath },
+                amount,
                 energyRemaining = player.Energy
             });
         }
