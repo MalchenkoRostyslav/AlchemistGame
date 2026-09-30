@@ -1,0 +1,27 @@
+.small.left { text-align: left; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 16px; }
+.chip { padding: 4px 12px; border-radius: 14px; font-weight: 700; font-size: 15px; background: rgba(95,170,106,.2); border: 1px solid var(--green); color: var(--green-dark); }
+.skill-tree { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 10px; }
+@media (max-width: 1000px) { .skill-tree { grid-template-columns: 1fr; } }
+.branch-title { text-align: center; font-size: 22px; color: var(--wood-2); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 3px double var(--brass); }
+.chain { display: flex; flex-direction: column; gap: 26px; }
+
+.skill { position: relative; display: flex; gap: 12px; padding: 14px; border-radius: 12px; background: rgba(255,255,255,.55); border: 2px solid rgba(107,69,38,.35); box-shadow: var(--shadow-sm); transition: transform .2s var(--ease), box-shadow .2s; animation: pop .3s var(--ease); }
+.skill + .skill::before { content: ''; position: absolute; left: 34px; top: -28px; width: 4px; height: 26px; background: repeating-linear-gradient(180deg, var(--brass) 0 6px, transparent 6px 10px); }
+.skill:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.skill-ico { flex: none; width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; background: radial-gradient(circle at 35% 30%, #fff, var(--parch-2)); border: 3px solid var(--brass); }
+.skill-body { flex: 1; min-width: 0; }
+.skill h3 { font-size: 17px; color: var(--wood-2); }
+.skill-desc { font-size: 15px; color: var(--ink-soft); }
+.skill-eff { font-weight: 700; color: var(--green-dark); margin-top: 2px; }
+.skill-unl { font-size: 14px; font-style: italic; color: var(--violet); }
+.need { font-size: 14px; color: var(--red); font-weight: 700; }
+.skill-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.pips { display: flex; gap: 5px; }
+.pip { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--brass-dark); background: rgba(0,0,0,.1); }
+.pip.on { background: radial-gradient(circle at 35% 30%, #fff3b0, var(--brass)); box-shadow: 0 0 8px var(--brass-2); }
+.skill.locked { filter: grayscale(.8); opacity: .65; }
+.skill.can { border-color: var(--green); animation: glow2 2.2s ease-in-out infinite; }
+.skill.maxed { border-color: var(--brass); background: linear-gradient(160deg, rgba(255,233,160,.55), rgba(255,255,255,.5)); }
+.maxed-tag { font: 700 14px var(--font-title); color: var(--brass-dark); }
+@keyframes glow2 { 0%, 100% { box-shadow: var(--shadow-sm); } 50% { box-shadow: 0 0 16px rgba(95,170,106,.8); } }

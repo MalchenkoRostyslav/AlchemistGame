@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace AlchemistApi.Models;
@@ -13,6 +13,9 @@ public partial class Recipe
 
     /// <summary>Рецепт відкривається автоматично на цьому рівні гравця (якщо RequiredSkillId == null).</summary>
     public int RequiredLevel { get; set; } = 1;
+
+    /// <summary>Базовий час варіння в секундах (множиться на модифікатор казана).</summary>
+    public int BrewTimeSeconds { get; set; } = 30;
 
     /// <summary>Якщо задано, рецепт відкривається лише вивченням навички (етап "Прокачка").</summary>
     public int? RequiredSkillId { get; set; }

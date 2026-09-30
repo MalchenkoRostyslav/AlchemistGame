@@ -89,6 +89,25 @@ namespace AlchemistApi.Services
             return result;
         }
 
+        // ---------- НАВИЧКИ ----------
+
+        /// <summary>Сумарні бонуси навичок гравця за типом ефекту (значення × ранг).</summary>
+        public async Task<Dictionary<string, decimal>> GetEffectsAsync(int playerId)
+        {
+            var rows = await _context.PlayerSkills
+                .Where(ps => ps.PlayerId == playerId)
+                .Select(ps => new { Type = ps.Skill.EffectType, Value = ps.Skill.EffectValue, Rank = ps.Rank })
+                .ToListAsync();
+            return rows.GroupBy(r => r.Type).ToDictionary(g => g.Key, g => g.Sum(r => r.Value * r.Rank));
+        }
+
+        public static decimal Effect(Dictionary<string, decimal> effects, string type) =>
+            effects.TryGetValue(type, out var v) ? v : 0m;
+
+        /// <summary>Множник часу варіння від навичок (1.0 = без змін).</summary>
+        public static decimal BrewTimeFactor(Dictionary<string, decimal> effects) =>
+            1m - Math.Min(0.8m, Effect(effects, GameRules.EffBrewTime) / 100m);
+
         // ---------- РЕЦЕПТИ ----------
 
         /// <summary>

@@ -33,7 +33,8 @@ namespace AlchemistApi.Controllers
 
             // 70% вода, 30% мандрагора; кількість 1-3
             int dropItemId = Random.Shared.Next(100) < 30 ? MandrakeItemId : WaterItemId;
-            int amount = Random.Shared.Next(1, 4);
+            int amount = Random.Shared.Next(1, 4)
+                + (int)PlayerService.Effect(await _players.GetEffectsAsync(playerId), GameRules.EffGatherBonus);
 
             var item = await _context.Items.FindAsync(dropItemId);
             if (item == null) return NotFound(new { message = "Предмет не знайдено в базі даних" });

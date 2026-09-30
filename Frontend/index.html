@@ -1,296 +1,79 @@
 <!DOCTYPE html>
 <html lang="uk">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Алхімік - Керування лабораторією</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/style.css">
-    <style>
-        /* Базові стилі для ідеальної симетрії */
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .btn {
-            padding: 10px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-            text-align: center;
-            width: 100%;
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .btn-primary {
-            background: #6366f1;
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: #4f46e5;
-        }
-
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-success:hover:not(:disabled) {
-            background: #059669;
-        }
-
-        .btn-warning {
-            background: #f59e0b;
-            color: black;
-        }
-
-        .btn-warning:hover:not(:disabled) {
-            background: #d97706;
-            color: white;
-        }
-
-        /* Сітка гри */
-        .game-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
-            gap: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* Верхня панель (ідеально по центру) */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #1e293b;
-            padding: 15px 30px;
-            border-radius: 12px;
-            border: 1px solid #334155;
-        }
-
-        .stat-badge {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 8px 16px;
-            border-radius: 8px;
-            min-width: 150px;
-            justify-content: center;
-        }
-
-        /* 3 симетричні колонки */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
-            flex-grow: 1;
-            min-height: 0;
-        }
-
-        .panel {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .panel-title {
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-            font-size: 16px;
-            color: #94a3b8;
-        }
-
-        /* Нижня панель */
-        .bottom-bar {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 20px;
-            height: 200px;
-            overflow-y: auto;
-        }
-
-        /* Елементи керування */
-        .styled-select {
-            width: 100%;
-            padding: 12px;
-            background: #0f172a;
-            color: white;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .inventory-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 10px;
-            overflow-y: auto;
-            align-content: start;
-        }
-
-        .item-card {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            position: relative;
-        }
-
-        .qty-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #334155;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Алхімік</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/pages/brew.css">
+  <link rel="stylesheet" href="styles/pages/market.css">
+  <link rel="stylesheet" href="styles/pages/skills.css">
 </head>
-
 <body>
+  <div id="fx" class="fx"></div>
 
-    <!-- Меню -->
-    <div id="main-menu"
-        style="display: flex; height: 100vh; justify-content: center; align-items: center; flex-direction: column; gap: 20px;">
-        <h1 style="color: #6366f1; font-size: 3rem;">Алхімік</h1>
-        <div style="width: 300px; display: flex; flex-direction: column; gap: 10px;">
-            <button class="btn btn-primary" onclick="createNewGame()">Створити профіль</button>
-            <button class="btn btn-success" onclick="showProfilesList('load')">Продовжити гру</button>
-            <button class="btn btn-warning" onclick="showProfilesList('delete')">Видалити профіль</button>
-        </div>
-        <div id="create-form" class="hidden" style="width: 300px; display: flex; flex-direction: column; gap: 10px;">
-            <input id="nickname-input" type="text" maxlength="50" placeholder="Ім'я алхіміка"
-                style="padding: 12px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 14px; outline: none;">
-            <button class="btn btn-primary" onclick="submitNewGame()">Почати гру</button>
-            <p id="create-error"
-                style="color: #ef4444; margin: 0; min-height: 18px; text-align: center; font-size: 13px;"></p>
-        </div>
-        <div id="profiles-container" class="hidden" style="margin-top: 20px; text-align: center;">
-            <h3 id="profiles-title" style="color: #94a3b8;">Оберіть сувій</h3>
-            <div id="profiles-list" style="display: flex; flex-direction: column; gap: 5px; margin-top: 10px;"></div>
-        </div>
+  <!-- ГОЛОВНЕ МЕНЮ -->
+  <div id="screen-menu" class="screen menu-screen">
+    <div class="menu-card panel">
+      <div class="logo-flask">⚗</div>
+      <h1 class="logo">Алхімік</h1>
+      <p class="subtitle">Лабораторія зілля</p>
+
+      <div id="menu-main" class="stack">
+        <button id="btn-new" class="btn btn-brass btn-lg">Нова гра</button>
+        <button id="btn-load" class="btn btn-green btn-lg">Продовжити</button>
+        <button id="btn-delete" class="btn btn-ghost">Видалити профіль</button>
+      </div>
+
+      <div id="menu-new" class="stack hidden">
+        <h3 class="section-title">Ім'я алхіміка</h3>
+        <input id="nickname-input" class="input" type="text" maxlength="50" placeholder="Наприклад: Мерлін" autocomplete="off">
+        <p id="new-error" class="form-error"></p>
+        <button id="btn-create" class="btn btn-brass btn-lg">Почати гру</button>
+        <button class="btn btn-ghost" data-back>Назад</button>
+      </div>
+
+      <div id="menu-load" class="stack hidden">
+        <h3 id="list-title" class="section-title">Оберіть профіль</h3>
+        <div id="profiles-list" class="stack scroll-list"></div>
+        <button class="btn btn-ghost" data-back>Назад</button>
+      </div>
     </div>
+  </div>
 
-    <!-- Ігровий інтерфейс -->
-    <div id="game-ui" class="game-container hidden">
+  <!-- ГРА -->
+  <div id="screen-game" class="screen game-screen hidden">
+    <header class="topbar">
+      <div class="brand"><span class="brand-ico">⚗</span> Алхімік</div>
 
-        <!-- Верхня панель (Статистика) -->
-        <header class="top-bar">
-            <div class="stat-badge" style="color: #f59e0b;">
-                🪙 Золото: <span id="player-gold" style="font-weight: bold; margin-left: 5px;">0</span>
-            </div>
+      <nav class="nav">
+        <a class="nav-link" data-page="brew"   href="#/brew">🜄 Котел</a>
+        <a class="nav-link" data-page="shop"   href="#/shop">🪙 Магазин</a>
+        <a class="nav-link" data-page="quests" href="#/quests">📜 Квести</a>
+        <a class="nav-link" data-page="skills" href="#/skills">✦ Прокачка</a>
+      </nav>
 
-            <div class="stat-badge" style="color: #38bdf8;">
-                ⚡ Енергія: <span id="player-energy" style="font-weight: bold; margin-left: 5px;">0</span>/<span
-                    id="player-max-energy">0</span>
-            </div>
-
-            <div class="stat-badge" style="color: #10b981;">
-                ✨ Рівень <span id="player-level" style="font-weight: bold; margin: 0 5px;">1</span> (XP: <span
-                    id="player-xp">0</span>)
-            </div>
-
-            <button class="btn" style="width: auto; background: #334155; color: white;"
-                onclick="exitToMenu()">Вийти</button>
-        </header>
-
-        <!-- Три симетричні колонки -->
-        <div class="main-grid">
-
-            <!-- 1. Збір та Торгівля -->
-            <div class="panel">
-                <h2 class="panel-title">Ресурси</h2>
-
-                <div
-                    style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
-                    <h3 style="margin: 0 0 10px 0; font-size: 15px;">Темний ліс (-5 ⚡)</h3>
-                    <button id="gather-btn" class="btn btn-success">Відправитись у ліс</button>
-                </div>
-
-                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; flex-grow: 1;">
-                    <h3 style="margin: 0 0 15px 0; font-size: 15px; text-align: center;">Торговець</h3>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <button class="btn" style="background: #334155; color: white;" onclick="buyItem(1)">Купити Воду
-                            (4 🪙)</button>
-                        <button class="btn" style="background: #334155; color: white;" onclick="buyItem(2)">Купити
-                            Мандрагору (30 🪙)</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Алхімічний казанок -->
-            <div class="panel" style="border-color: #6366f1;">
-                <h2 class="panel-title" style="color: #6366f1;">Алхімічний казанок</h2>
-
-                <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-                    <button class="btn btn-warning" style="width: auto; font-size: 12px;" onclick="upgradeCauldron()">⬆️
-                        Покращити казанок</button>
-                </div>
-
-                <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
-                    <label style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Оберіть рецепт:</label>
-                    <select id="recipe-select" class="styled-select"></select>
-
-                    <button id="craft-btn" class="btn btn-primary" style="padding: 15px; font-size: 16px;">Зварити (-10
-                        ⚡)</button>
-
-                    <p id="craft-message"
-                        style="text-align: center; margin-top: 15px; font-weight: bold; min-height: 20px;"></p>
-                </div>
-            </div>
-
-            <!-- 3. Інвентар -->
-            <div class="panel">
-                <h2 class="panel-title">Сумка</h2>
-                <div id="inventory-grid" class="inventory-grid">
-                    <!-- Заповнюється через JS -->
-                </div>
-            </div>
-
+      <div class="hud">
+        <div class="hud-badge gold" title="Золото">🪙 <b id="hud-gold">0</b></div>
+        <div class="hud-badge energy" title="Енергія">⚡ <b id="hud-energy">0/0</b><small id="hud-energy-timer"></small></div>
+        <div class="hud-level" title="Рівень і досвід">
+          <span class="lvl">Рів. <b id="hud-level">1</b></span>
+          <div class="bar"><div id="hud-xp-fill" class="bar-fill"></div></div>
+          <small id="hud-xp-text"></small>
         </div>
+        <a id="hud-sp" class="hud-badge sp hidden" href="#/skills" title="Очки навичок">✦ 0</a>
+        <button id="btn-exit" class="btn btn-ghost btn-sm">Вийти</button>
+      </div>
+    </header>
 
-        <!-- Нижня панель (Квести) -->
-        <div class="bottom-bar">
-            <h2 class="panel-title" style="text-align: left;">📜 Дошка оголошень</h2>
-            <div id="quest-board" style="display: flex; gap: 15px; overflow-x: auto;"></div>
-        </div>
+    <main id="view" class="view"></main>
+  </div>
 
-    </div>
-
-    <script src="scripts/game.js"></script>
+  <div id="toasts" class="toasts"></div>
+  <script type="module" src="scripts/main.js"></script>
 </body>
-
 </html>

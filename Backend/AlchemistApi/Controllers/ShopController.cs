@@ -10,18 +10,29 @@ namespace AlchemistApi.Controllers
     public class ShopController : ControllerBase
     {
         private readonly AlchemistGameContext _context;
+        private readonly PlayerService _players;
 
-        public ShopController(AlchemistGameContext context)
+        public ShopController(AlchemistGameContext context, PlayerService players)
         {
             _context = context;
+            _players = players;
         }
 
-        // Асортимент магазину з таблиці ShopAssortment
+        // Знижка на купівлю (навичка), максимум 50%
+        private static decimal DiscountPercent(Dictionary<string, decimal> effects) =>
+            Math.Min(50m, PlayerService.Effect(effects, GameRules.EffBuyDiscount));
+
+        private static int Discounted(int price, decimal pct) =>
+            Math.Max(1, (int)Math.Round(price * (1m - pct / 100m)));
+
+        // Асортимент магазину з таблиці ShopAssortment (з урахуванням знижки)
         [HttpGet("assortment/{playerId:int}")]
         public async Task<IActionResult> GetAssortment(int playerId)
         {
             var player = await _context.Players.FindAsync(playerId);
             if (player == null) return NotFound(new { message = "Гравця не знайдено" });
+
+            decimal disc = DiscountPercent(await _players.GetEffectsAsync(playerId));
 
             var raw = await _context.ShopAssortments
                 .Where(a => a.ItemId != null && a.Item != null)
@@ -47,7 +58,8 @@ namespace AlchemistApi.Controllers
                 icon = x.Icon,
                 rarity = x.Rarity,
                 color = x.Color,
-                price = x.Price,
+                price = Discounted(x.Price, disc),
+                basePrice = x.Price,
                 requiredLevel = x.RequiredLevel,
                 locked = player.Level < x.RequiredLevel
             });
@@ -55,7 +67,7 @@ namespace AlchemistApi.Controllers
             return Ok(items);
         }
 
-        // Купівля: ціна береться з ShopAssortment
+        // Купівля: ціна з ShopAssortment мінус знижка від навичок
         [HttpPost("buy")]
         public async Task<IActionResult> BuyItem(int playerId, int itemId, int quantity = 1)
         {
@@ -74,7 +86,8 @@ namespace AlchemistApi.Controllers
             if (player.Level < (offer.RequiredPlayerLevel ?? 0))
                 return BadRequest(new { message = $"Потрібен {offer.RequiredPlayerLevel} рівень!" });
 
-            long total = (long)offer.PurchasePrice * quantity;
+            decimal disc = DiscountPercent(await _players.GetEffectsAsync(playerId));
+            long total = (long)Discounted(offer.PurchasePrice, disc) * quantity;
             if ((player.Gold ?? 0) < total)
                 return BadRequest(new { message = "Недостатньо золота!" });
 
@@ -94,7 +107,7 @@ namespace AlchemistApi.Controllers
             });
         }
 
-        // Продаж: тільки зілля / отрута / невідоме зілля
+        // Продаж: тільки зілля / отрута / невідоме зілля; ціна з бонусом навичок
         [HttpPost("sell")]
         public async Task<IActionResult> SellItem(int playerId, int itemId, int quantity = 1)
         {
@@ -112,7 +125,11 @@ namespace AlchemistApi.Controllers
             if (!GameRules.IsSellable(slot.Item.ItemType)) return BadRequest(new { message = "Цей предмет не можна продати" });
             if (quantity > slot.Quantity) return BadRequest(new { message = "У вас немає стільки предметів" });
 
-            int earned = slot.Item.BasePrice * quantity;
+            var effects = await _players.GetEffectsAsync(playerId);
+            decimal bonus = 1m + PlayerService.Effect(effects, GameRules.EffSellBonus) / 100m;
+            int unit = (int)Math.Round(slot.Item.BasePrice * bonus);
+            int earned = unit * quantity;
+
             player.Gold = (player.Gold ?? 0) + earned;
             slot.Quantity -= quantity;
             if (slot.Quantity == 0) _context.PlayerInventories.Remove(slot);

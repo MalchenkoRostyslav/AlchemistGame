@@ -1,0 +1,23 @@
+/* ТЕМА: усі кольори, шрифти й текстури в одному місці.
+   Щоб замінити текстуру своєю картинкою, зміни змінну --tex-* (наприклад: url("../assets/textures/paper.png")). */
+:root {
+  --bg: #e8d5aa;  --bg-2: #d9c08c;
+  --parch: #f7ecd2;  --parch-2: #efdfbb;
+  --wood: #6b4526;  --wood-2: #4a2f18;
+  --brass: #b98a3e;  --brass-2: #e3bb6c;  --brass-dark: #8a6224;
+  --ink: #3a2814;  --ink-soft: #7d6747;
+  --green: #5faa6a;  --green-dark: #3f8450;  --glow: #9be8a6;
+  --red: #b5483a;  --blue: #4a7fb0;  --violet: #7f5aa8;
+
+  --font-title: 'Cinzel', Georgia, serif;
+  --font-body: 'Crimson Text', Georgia, serif;
+
+  --radius: 14px;  --radius-sm: 8px;
+  --shadow: 0 6px 18px rgba(58, 40, 20, .28);
+  --shadow-sm: 0 2px 6px rgba(58, 40, 20, .25);
+  --ease: cubic-bezier(.22, .8, .3, 1);
+
+  /* Текстури, згенеровані кодом (SVG-шум). Заміни на свої файли за потреби. */
+  --tex-paper: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .29 0 0 0 0 .13 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --tex-wood: repeating-linear-gradient(92deg, rgba(0,0,0,.07) 0 2px, transparent 2px 9px), linear-gradient(180deg, #7a5230, #5a3a1e);
+}

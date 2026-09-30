@@ -10,18 +10,23 @@ namespace AlchemistApi.Controllers
     public class InventoryController : ControllerBase
     {
         private readonly AlchemistGameContext _context;
+        private readonly PlayerService _players;
 
-        public InventoryController(AlchemistGameContext context)
+        public InventoryController(AlchemistGameContext context, PlayerService players)
         {
             _context = context;
+            _players = players;
         }
 
-        // GET /api/inventory/1  (порожня сумка = порожній масив, а не 404)
+        // GET /api/inventory/1  (порожня сумка = порожній масив; price = ціна продажу з бонусом навичок)
         [HttpGet("{playerId:int}")]
         public async Task<IActionResult> GetPlayerInventory(int playerId)
         {
             if (!await _context.Players.AnyAsync(p => p.Id == playerId))
                 return NotFound(new { message = "Гравця не знайдено" });
+
+            var effects = await _players.GetEffectsAsync(playerId);
+            decimal bonus = 1m + PlayerService.Effect(effects, GameRules.EffSellBonus) / 100m;
 
             var raw = await _context.PlayerInventories
                 .Where(pi => pi.PlayerId == playerId)
@@ -48,7 +53,7 @@ namespace AlchemistApi.Controllers
                 x.Rarity,
                 x.Color,
                 x.Icon,
-                x.Price,
+                Price = (int)Math.Round(x.Price * bonus),
                 Sellable = GameRules.IsSellable(x.Type)
             });
 

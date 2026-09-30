@@ -28,11 +28,13 @@ namespace AlchemistApi.Controllers
             var current = rows.FirstOrDefault(u => u.Level == cl);
             var next = rows.FirstOrDefault(u => u.Level == cl + 1);
 
+            var effects = await _players.GetEffectsAsync(player.Id);
+
             return new
             {
                 level = cl,
                 maxIngredients = current?.MaxIngredients ?? 2,
-                craftTimeModifier = current?.CraftTimeModifier ?? 1.0m,
+                craftTimeModifier = (current?.CraftTimeModifier ?? 1.0m) * PlayerService.BrewTimeFactor(effects),
                 nextUpgradeCost = next?.UpgradeCostGold,
                 nextMaxIngredients = next?.MaxIngredients
             };
