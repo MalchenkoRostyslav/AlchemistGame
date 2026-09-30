@@ -2,6 +2,7 @@ import { api } from '../core/api.js';
 import { state, refreshPlayer, subscribe } from '../core/state.js';
 import { register } from '../core/router.js';
 import { el, toast, modal, itemCard } from '../core/ui.js';
+import { cauldronEl, splash, enableDrag } from '../core/cauldron.js';
 
 const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 const TITLES = { Success: 'Зілля готове!', Unknown: 'Невідоме зілля', Poison: 'Отрута!' };
@@ -45,6 +46,7 @@ register('brew', {
       if (cur >= 99) return;
       S.mix.set(item.itemId, cur + 1);
       draw();
+      splash(document.querySelector('.cauldron-wrap'), item.color);
     }
     function change(id, d) {
       const q = (S.mix.get(id) || 0) + d;
@@ -102,10 +104,17 @@ register('brew', {
       const p = state.player;
       const ingr = S.inv.filter((i) => i.type === 'Ingredient');
       const other = S.inv.filter((i) => i.type !== 'Ingredient');
+      // Картка інгредієнта: клік додає 1 шт., перетягування в котел теж
+      const dragCard = (i) => {
+        const c = itemCard(i);
+        c.classList.add('draggable');
+        enableDrag(c, { canDrag: () => !S.brew.active, onClick: () => add(i), onDrop: () => add(i) });
+        return c;
+      };
       return el('section', { class: 'panel' },
         el('h2', { class: 'panel-h' }, 'Інгредієнти'),
         ingr.length
-          ? el('div', { class: 'grid-items sm' }, ingr.map((i) => itemCard(i, { onClick: () => add(i) })))
+          ? el('div', { class: 'grid-items sm' }, ingr.map(dragCard))
           : el('p', { class: 'muted' }, 'Сумка порожня: відправтесь у ліс або купіть інгредієнти в магазині.'),
         el('button', { class: 'btn btn-green wide', disabled: p.energy < 5, onclick: gather }, '🌲 Піти в ліс (−5 ⚡)'),
         other.length ? [el('h3', { class: 'panel-h sub' }, 'Готові зілля'),
@@ -115,10 +124,9 @@ register('brew', {
     function panelCenter() {
       const p = state.player, c = p.cauldron, b = S.brew;
       const st = b.active ? (b.ready ? 'ready' : 'brewing') : 'idle';
-      const pot = el('div', { class: `cauldron ${st}` },
-        el('div', { class: 'steam' }),
-        el('div', { class: 'pot' }, el('div', { class: 'liquid' },
-          [1, 2, 3, 4, 5, 6].map((n) => el('i', { class: 'bubble', style: `left:${n * 14}%;animation-delay:${n * -0.4}s` })))));
+      const cols = S.mix.size ? [...S.mix.keys()].map((id) => (S.inv.find((i) => i.itemId === id) || {}).color).filter(Boolean) : null;
+      if (cols && cols.length) S.tint = cols;
+      const pot = cauldronEl(st, cols && cols.length ? cols : (b.active ? S.tint : null));
       let body;
       if (b.active) {
         timerBar = el('div', { class: 'bar-fill' });
@@ -139,7 +147,7 @@ register('brew', {
         });
         body = el('div', { class: 'stack' },
           el('div', { class: 'muted small' }, `Слоти: ${S.mix.size}/${c.maxIngredients}`),
-          rows.length ? rows : el('p', { class: 'muted' }, 'Клацніть на інгредієнти зліва або оберіть рецепт у книзі.'),
+          rows.length ? rows : el('p', { class: 'muted drop-hint' }, 'Перетягніть інгредієнти в котел (або клацніть по них) чи оберіть рецепт у книзі.'),
           el('button', { class: 'btn btn-brass btn-lg', disabled: !S.mix.size || p.energy < 10, onclick: start }, 'Варити (−10 ⚡)'),
           S.mix.size ? el('button', { class: 'btn btn-ghost', onclick: () => { S.mix.clear(); draw(); } }, 'Очистити') : null);
       }
