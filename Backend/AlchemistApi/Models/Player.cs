@@ -26,6 +26,8 @@ public partial class Player
 
     public int MaxEnergy { get; set; } = 50;
 
+    public string PasswordHash { get; set; } = string.Empty;
+
     /// <summary>Якір відліку відновлення енергії (UTC).</summary>
     public DateTime LastEnergyUpdate { get; set; } = DateTime.UtcNow;
 
