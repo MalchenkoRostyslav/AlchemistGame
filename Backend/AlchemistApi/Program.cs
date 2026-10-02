@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. База даних
 builder.Services.AddDbContext<AlchemistGameContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 2. Ігрові сервіси (правила гри: енергія, XP, рівні, розблокування рецептів)
 builder.Services.AddScoped<PlayerService>();
